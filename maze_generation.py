@@ -1,6 +1,18 @@
-import os, sys, pickle
+import sys, pickle
 from maze_creations import dfs_generation, prims_generation, maze_passage
 from maze import Maze, Cell
+
+
+def show_help():  # помощь по аргументам командной строки
+    print("Аргумены указываются в следующем порядке:")
+    print("1) Вариант генерации лабиринта (по умолчанию генерация обходом в глубину):")
+    print("   dfs_generation - генерация обходом в глубину,")
+    print("   prims_generation - генерация алгоритмом Прима;")
+    print("2) Размер лабиринта: высота и ширина (в случае, если лабиринт не загружается из файла);")
+    print("3) save - в случае, если лабиринт нужно загрузить, load - в случае, если лабиринт нужно загрузить;")
+    print("4) название файла (без указания расширения);")
+    print("5) show_path - в случае, если нужно отобразить решение лабиринта.")
+    print()
 
 
 def save_maze(labyrinth, file_name):  # сохранение лабиринта в файл
@@ -17,9 +29,6 @@ def save_maze(labyrinth, file_name):  # сохранение лабиринта 
 
 def load_maze(file_name):  # загрузка лабиринта из файла
     "Загрузка лабиринта из файла"
-    if os._exists(file_name):
-        print("Файл " + file_name + " отсутсствует")
-        return None
     with open(file_name, "rb") as file:
         height, width = pickle.load(file)
         start = pickle.load(file)
@@ -33,54 +42,59 @@ def load_maze(file_name):  # загрузка лабиринта из файла
 
 
 if __name__ == "__main__":
-    print("Введите вариант генерации лабиринта:")
-    print("   dfs_generation - генерация обходом в глубину,")
-    print("   prims_generation - генерация алгоритмом Прима;")
-    print("   load - загрузить лабиринт из файла.")
-
+    is_show = True
     labyrinth = None
-    type_of_gen = input().strip().lower()
+    cur_arg = 1
 
-    if type_of_gen == 'load':
-        print("Введите название файла лабиринта (без расширения):")
-        file_name = input().strip().lower()
-        labyrinth = load_maze(os.path.join(os.getcwd(), 'mazes', file_name + '.maze'))
+    if len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'help':  # помощь по аргументам командной строки
+        show_help()
+        is_show = False
+    elif len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'load':  # в случае загрузки лабиринта
+        cur_arg += 1
+        if len(sys.argv) == cur_arg:
+            print("Укажите название файла, из которого будет загружен лабиринт\n")
+            is_show = False
+        else:
+            labyrinth = load_maze(sys.argv[cur_arg] + ".maze")
+            cur_arg += 1
     else:
-        correct = False
-        height, width = 0, 0
+        mode = 0  # вид генерации
+        if len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'dfs_generation':
+            mode = 0
+            cur_arg += 1
+        elif len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'prims_generation':
+            mode = 1
+            cur_arg += 1
 
-        while not correct:
-            print("Введите размер лабиринта (высота и ширина через пробел):")
-            height, width = input().strip().split()
+        if len(sys.argv) == cur_arg or not sys.argv[cur_arg].isdigit():  # задаём высоту лабиринта
+            height = 10
+        else:
+            height = int(sys.argv[cur_arg])
+            cur_arg += 1
+        if len(sys.argv) == cur_arg or not sys.argv[cur_arg].isdigit():  # задаём ширину лабиринта
+            width = 10
+        else:
+            width = int(sys.argv[cur_arg])
+            cur_arg += 1
 
-            if not height.isdigit() or not width.isdigit():
-                print("Размеры должны быть числами!")
-            else:
-                correct = True
-
-        height, width = int(height), int(width)
-        if type_of_gen == 'dfs_generation':
+        if mode == 0:  # генерация лабиринта
             labyrinth = dfs_generation(height, width)
-        elif type_of_gen == 'prims_generation':
+        elif mode == 1:
             labyrinth = prims_generation(height, width)
         else:
-            print("Генерация алгоритмом по умолчанию (dfs_generation)")
-            labyrinth = dfs_generation(height, width)
+            labyrinth = None
+            print("Ошибка")
 
-    print("Нужно ли выводить решение лабиринта (yes, no):")
-    show_path = (input().strip().lower() == 'yes')
+        if len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'save':  # в случае сохранения лабиринта
+            cur_arg += 1
+            if len(sys.argv) == cur_arg:
+                print("Укажите название файла, в который будет сохранён лабиринт\n")
+            else:
+                save_maze(labyrinth, sys.argv[cur_arg] + ".maze")
+                cur_arg += 1
 
-    if labyrinth is not None and show_path:
+    if len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'show_path':  # показываем решение лабиринта
         maze_passage(labyrinth)
         labyrinth.show_path()
-
-    if labyrinth is not None:
+    if is_show:  # выводим лабирнт на экран
         print(labyrinth)
-
-        print("Нужно ли сохранить лабиринт (yes, no):")
-        is_save = (input().strip().lower() == 'yes')
-
-        if is_save:
-            print("Введите название файла, в который нужно сохранить лабиринт (без расширения):")
-            file_name = input().strip().lower()
-            save_maze(labyrinth, os.path.join(os.getcwd(), 'mazes', file_name + '.maze'))
