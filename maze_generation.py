@@ -1,5 +1,5 @@
 import sys, pickle
-from maze_creations import dfs_generation, prims_generation, maze_passage
+from maze_creations import dfs_generation, prims_generation, ellers_generation, recursive_generation, maze_passage
 from maze import Maze, Cell
 
 
@@ -8,6 +8,8 @@ def show_help():  # помощь по аргументам командной с
     print("1) Вариант генерации лабиринта (по умолчанию генерация обходом в глубину):")
     print("   dfs_generation - генерация обходом в глубину,")
     print("   prims_generation - генерация алгоритмом Прима;")
+    print("   ellers_generation - генерация алгоритмом Эллера;")
+    print("   recursive_generation - генерация методом рекурсивного деления;")
     print("2) Размер лабиринта: высота и ширина (в случае, если лабиринт не загружается из файла);")
     print("3) save - в случае, если лабиринт нужно загрузить, load - в случае, если лабиринт нужно загрузить;")
     print("4) название файла (без указания расширения);")
@@ -65,6 +67,12 @@ if __name__ == "__main__":
         elif len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'prims_generation':
             mode = 1
             cur_arg += 1
+        elif len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'ellers_generation':
+            mode = 2
+            cur_arg += 1
+        elif len(sys.argv) > cur_arg and sys.argv[cur_arg] == 'recursive_generation':
+            mode = 3
+            cur_arg += 1
 
         if len(sys.argv) == cur_arg or not sys.argv[cur_arg].isdigit():  # задаём высоту лабиринта
             height = 10
@@ -81,6 +89,10 @@ if __name__ == "__main__":
             labyrinth = dfs_generation(height, width)
         elif mode == 1:
             labyrinth = prims_generation(height, width)
+        elif mode == 2:
+            labyrinth = ellers_generation(height, width)
+        elif mode == 3:
+            labyrinth = recursive_generation(height, width)
         else:
             labyrinth = None
             print("Ошибка")
